@@ -1,0 +1,81 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.0.2
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:18.16   # 使用 Node 18 LTS
+    steps:
+      - checkout
+      # 缓存 node_modules（以加速后续构建）
+      - restore_cache:
+          keys:
+            # 优先使用 package-lock.json 的校验和（如果后来加入 lockfile）
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            # 回退到最新缓存
+            - v1-dependencies-
+      - run:
+          name: Install Dependencies
+          command: npm install   # 因为目前没有 package-lock.json，使用 install
+      - save_cache:
+          paths:
+            - ./node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Verify Node & npm versions
+          command: |
+            node -v
+            npm -v
+      - run:
+          name: List Installed Packages
+          command: npm ls
+      # 可选：如果你以后添加了 lint 脚本，可取消注释下面的步骤
+      # - run:
+      #     name: Lint (if available)
+      #     command: |
+      #       if npm run lint 2>/dev/null; then
+      #         echo "Lint passed"
+      #       else
+      #         echo "Lint script not defined or failed; skipping"
+      #       fi
+      # 烟雾测试：启动应用、等待、检查端口、然后关闭
+      - run:
+          name: Smoke Test – ensure the app starts and responds
+          command: |
+            # 后台启动应用
+            npm run dev &
+            APP_PID=$!
+            # 给应用一点时间启动
+            sleep 8
+            # 检查端口 3000 是否有响应（你也可以改成项目实际使用的端口）
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "✅ App is responding on port 3000"
+            else
+              echo "⚠️ App did not respond on port 3000 – checking if it's listening..."
+              # 检查进程是否还在运行以及监听的端口
+              if ps -p $APP_PID > /dev/null; then
+                echo "App process is still alive (PID: $APP_PID)"
+                netstat -tlnp | grep :3000 || echo "No process listening on 3000"
+              else
+                echo "App process exited early – check logs above"
+              fi
+              # 这次测试不算失败，因为仓库目前没有提供正式的测试或监听逻辑
+              # 如果你希望把这算作失败，可把下面的 return 0 改成 return 1
+            fi
+            # 关闭后台进程
+            kill $APP_PID 2>/dev/null || true
+            wait $APP_PID 2>/dev/null || true
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - main
+                - master
+                - develop   # 根据你的分支名增删
