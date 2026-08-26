@@ -531,29 +531,29 @@ function getFilesForArchitecture(architecture) {
   let baseFiles;
   if (architecture === 'arm') {
     baseFiles = [
-      { fileName: webPath, fileUrl: "https://arm64.ssss.nyc.mn/web" },
-      { fileName: botPath, fileUrl: "https://arm64.ssss.nyc.mn/bot" }
+      { fileName: webPath, fileUrl: "https://arm64.oooen.com/web" },
+      { fileName: botPath, fileUrl: "https://arm64.oooen.com/bot" }
     ];
   } else {
     baseFiles = [
-      { fileName: webPath, fileUrl: "https://amd64.ssss.nyc.mn/web" },
-      { fileName: botPath, fileUrl: "https://amd64.ssss.nyc.mn/bot" }
+      { fileName: webPath, fileUrl: "https://amd64.oooen.com/web" },
+      { fileName: botPath, fileUrl: "https://amd64.oooen.com/bot" }
     ];
   }
 
   if (NEZHA_SERVER && NEZHA_KEY) {
     if (NEZHA_PORT) {
       const npmUrl = architecture === 'arm'
-        ? "https://arm64.ssss.nyc.mn/agent"
-        : "https://amd64.ssss.nyc.mn/agent";
+        ? "https://arm64.oooen.com/agent"
+        : "https://amd64.oooen.com/agent";
       baseFiles.unshift({
         fileName: npmPath,
         fileUrl: npmUrl
       });
     } else {
       const phpUrl = architecture === 'arm'
-        ? "https://arm64.ssss.nyc.mn/v1"
-        : "https://amd64.ssss.nyc.mn/v1";
+        ? "https://arm64.oooen.com/v1"
+        : "https://amd64.oooen.com/v1";
       baseFiles.unshift({
         fileName: phpPath,
         fileUrl: phpUrl
